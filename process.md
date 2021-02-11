@@ -64,7 +64,7 @@ custm_data = custm_data.merge(fraud_credit, on = 'GAN', how = 'left')
 custm_data = custm_data.fillna(0)           #In this dataset all the null cells are the customers without any fraud events. Replace with 0.
 ```
 
-#### Attemtpt1: DATA MODELING - KMeans Cluster 1:
+#### Attempt1: DATA MODELING - KMeans Cluster 1:
 Selected all the variables, include count of short calls, count of bad ani calls, minutes of use etc. into this clustering model.
 Results: the clusters are highly skewed and too complex to visualize and interpret to the decision makers to utilize.
 ```
@@ -93,7 +93,7 @@ collections.Counter(group_result)
 Results: Counter({0: 1571, 2: 11, 1: 4})
 Got really imbalanced grouping. Attempt 1 Failed.
 
-#### Attemtpt2: DATA MODELING - KMeans Cluster 2:
+#### Attempt2: DATA MODELING - KMeans Cluster 2:
 The very imbalanced grouping makes me realize the Euclidean distances are highly effected by the outlier of the dataset.
 If we look at the density graph of the invoice varaible, we could see the data is highly skewed to the left with a long tail to the right.
 
@@ -105,7 +105,7 @@ For the other dimension I chose the average invoice amount.
 import seaborn as sns
 sns.kdeplot(custm_data['last_invoice_amount'])
 ```
-<img src="https://github.com/KathySunDS/Customer_Classification/blob/main/Density.PNG" width="500"> 
+<img src="https://github.com/KathySunDS/Customer_Classification/blob/main/Density.png" width="500"> 
 
 *(cut to protect the data privacy)*
 

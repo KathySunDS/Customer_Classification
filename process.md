@@ -59,11 +59,13 @@ custm_data = custm_rep.merge(fraud_cost, on = 'GAN', how = 'left')
 custm_data = custm_data.merge(fraud_credit, on = 'GAN', how = 'left')
 
 # replace null value with 0
-custm_data = custm_data.fillna(0)
+custm_data = custm_data.fillna(0)           #In this dataset all the null cells are the customers without any fraud events. Replace with 0.
+```
 
-
-# In[Attemtpt1: DATA MODELING - KMeans Cluster 1]:
-"""
+#### Attemtpt1: DATA MODELING - KMeans Cluster 1:
+Selected all the variables, include count of short calls, count of bad ani calls, minutes of use etc. into this clustering model.
+Results: the clusters are highly skewed and too complex to visualize and interpret to the decision makers to utilize.
+```
 wcss = []
 #custm_data_value_only = custm_data.iloc[:,1:]
 
@@ -84,19 +86,35 @@ group_result = kmeans.fit_predict(custm_data.iloc[:,1:])
 
 import collections
 collections.Counter(group_result)
-"""
-# Got really imbalanced grouping. Attempt 1 Failed.
+```
 
-# In[Attemtpt2: DATA MODELING - KMeans Cluster 2]:
-# Use different inputs
-# Step 1: use feature scaling to standardize the monthly average fraud cost (not nomrally distributed)
+Results: Counter({0: 1571, 2: 11, 1: 4})
+Got really imbalanced grouping. Attempt 1 Failed.
+
+#### Attemtpt2: DATA MODELING - KMeans Cluster 2:
+The very imbalanced grouping makes me realize the Euclidean distances are highly effected by the outlier of the dataset.
+If we look at the density graph of the invoice varaible, we could see the data is highly skewed to the left with a long tail to the right.
+
+Moreover, to better communicate and represent the idea to the non-technical background decision makers. I decided to finalize a model with 2D data. 
+From conversations with stakeholders, I concluded the top two factors defining the fraud mitigation procedure will be the customer's business size as well as their traffic quality.
+In order to achieve this, for the first dimension, I picked outbound traffic score: ```*outbound traffic score = Long% x Good ANI% x Answered% * ```and combined it with average fraud ticket cost distirbution cdr to create a new traffic score.
+For the other dimension I chose the average invoice amount. 
+```
+import seaborn as sns
+sns.kdeplot(custm_data['last_invoice_amount'])
+```
+![Invoice_Density_Plot](https://github.com/KathySunDS/Customer_Classification/blob/main/Density.PNG)
+*(cut to protect the data privacy)*
+
+Rescale the variables:
+Step 1: use feature scaling to standardize the monthly average fraud cost (not nomrally distributed)
+```
 custm_data['Fraud_Cost_z']=(custm_data['Fraud_Cost']-custm_data['Fraud_Cost'].mean())/custm_data['Fraud_Cost'].std() 
 custm_data['fraud_score'] = custm_data['Fraud_Cost_z'].apply(lambda x: (1-st.norm.cdf(x)))
-#!!! Need to finalize a good score calculation
-#Attempt 1 is to use outbound score * fraud score. Inaccuracy led to high fraud cost but okay traffic custm like Cisco
-#Attempt 2 is to use weighted average 60% traffic score and 40% fraud score
-custm_data['score'] = custm_data['fraud_score'] * 0.3 + custm_data['outbound_score'] * 0.7
 
+#Attempt 1 is to use outbound score * fraud score. Inaccuracy led to high fraud cost but okay traffic custm like Cisco
+#Attempt 2 is to use weighted average 30% fraud score plus 70% traffic score
+custm_data['score'] = custm_data['fraud_score'] * 0.3 + custm_data['outbound_score'] * 0.7
 custm_data['score_z'] = (custm_data['score']-custm_data['score'].mean())/custm_data['score'].std()
 custm_data['score_rescaled'] = custm_data['score_z'].apply(lambda x: st.norm.cdf(x)*100)
 custm_data['invoice_z'] =(custm_data['last_invoice_amount']-custm_data['last_invoice_amount'].mean())/custm_data['last_invoice_amount'].std()
@@ -104,8 +122,6 @@ custm_data['invoice_rescaled'] = custm_data['invoice_z'].apply(lambda x: st.norm
 custm_invoice_score = custm_data[['GAN','score_rescaled','invoice_rescaled']]
 
 wcss = []
-#custm_data_value_only = custm_data.iloc[:,1:]
-
 for i in range (1,11):
     kmeans = KMeans(n_clusters = i, init = 'k-means++')
     kmeans.fit(custm_invoice_score.iloc[:,1:])
@@ -149,4 +165,4 @@ plt.legend()
 
 custm_data = custm_data.merge(custm_invoice_score[['GAN', 'cluster_result']], on = 'GAN', how = 'left')
 custm_data = custm_data.merge(custm_dictionary, on ='GAN', how='left')
-
+```

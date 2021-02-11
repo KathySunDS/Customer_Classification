@@ -1,5 +1,7 @@
 *(This markdown serves the purpose of a jupyter notebook since the raw data is protected and couldn't be uploaded)*
 
+
+### Data Processing
 #### IMPORT DATA:
 ```
 os.chdir('\Projects\Customer_Classification_Analysis')
@@ -103,7 +105,7 @@ For the other dimension I chose the average invoice amount.
 import seaborn as sns
 sns.kdeplot(custm_data['last_invoice_amount'])
 ```
-![Invoice_Density_Plot](https://github.com/KathySunDS/Customer_Classification/blob/main/Density.PNG)
+<img src="https://github.com/KathySunDS/Customer_Classification/blob/main/Density.PNG" width="500"> 
 
 *(cut to protect the data privacy)*
 
@@ -137,7 +139,8 @@ plt.ylabel('wcss')
 plt.title('elbow method')
 plt.show()
 ```
-![Elbow Method Plot](https://github.com/KathySunDS/Customer_Classification/blob/main/elbow_mthd.png)
+<img src="<img src="https://github.com/KathySunDS/Customer_Classification/blob/main/elbow_mthd" width="500"> 
+
 According to the elbow method, it could be debatable whether the optimal number of cluster can be 2 or 6. However, from the stakeholders I understand there are 3 different strategies premade. In order to fit the cluster into those 3 strategies. I deicided to take 6 as the optimal number of clusters.
 ```
 # Using 6 as the optimal number of clusters
@@ -174,4 +177,7 @@ plt.legend()
 custm_data = custm_data.merge(custm_invoice_score[['GAN', 'cluster_result']], on = 'GAN', how = 'left')
 custm_data = custm_data.merge(custm_dictionary, on ='GAN', how='left')
 ```
+
+### Summary
 <img src="https://github.com/KathySunDS/Customer_Classification/blob/main/Cluster_Plot.png" width="500"> 
+Like the above cluster image shows, the customers are now seperated into 6 different groups based on their similarity of the monthly average invoice as well as their position within the company in regard to its traffic score. I would suggest to put the least aggressive fraud mitigation procedure to the group(s) with customers who have high invoice and high traffic score, and on the contrary, put the most aggressive fraud mitigation procedure to group(s) with customers who have the low invoice and low traffic score.

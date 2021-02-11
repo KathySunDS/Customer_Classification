@@ -97,13 +97,14 @@ If we look at the density graph of the invoice varaible, we could see the data i
 
 Moreover, to better communicate and represent the idea to the non-technical background decision makers. I decided to finalize a model with 2D data. 
 From conversations with stakeholders, I concluded the top two factors defining the fraud mitigation procedure will be the customer's business size as well as their traffic quality.
-In order to achieve this, for the first dimension, I picked outbound traffic score: ```*outbound traffic score = Long% x Good ANI% x Answered% * ```and combined it with average fraud ticket cost distirbution cdr to create a new traffic score.
+In order to achieve this, for the first dimension, I picked outbound traffic score: ```outbound traffic score = Long% x Good ANI% x Answered%```and combined it with average fraud ticket cost distirbution cdr to create a new traffic score.
 For the other dimension I chose the average invoice amount. 
 ```
 import seaborn as sns
 sns.kdeplot(custm_data['last_invoice_amount'])
 ```
 ![Invoice_Density_Plot](https://github.com/KathySunDS/Customer_Classification/blob/main/Density.PNG)
+
 *(cut to protect the data privacy)*
 
 Rescale the variables:
@@ -112,8 +113,12 @@ Step 1: use feature scaling to standardize the monthly average fraud cost (not n
 custm_data['Fraud_Cost_z']=(custm_data['Fraud_Cost']-custm_data['Fraud_Cost'].mean())/custm_data['Fraud_Cost'].std() 
 custm_data['fraud_score'] = custm_data['Fraud_Cost_z'].apply(lambda x: (1-st.norm.cdf(x)))
 
-#Attempt 1 is to use outbound score * fraud score. Inaccuracy led to high fraud cost but okay traffic custm like Cisco
-#Attempt 2 is to use weighted average 30% fraud score plus 70% traffic score
+```
+One of the key challenge for this project is actually to create a scoring that is both reasonable with the data given and acceptable given the experiences that stakeholders have with each customers in the persepective of fraud mitigation process.
+*Method 1*  use outbound score * fraud score. This causing a lot of major customers with huge traffic size have very skewed score due to a huge fraud event that happened once the the past.
+*Method 2*  weighted average 30% fraud score plus 70% traffic score. More exceptable during the test run.
+
+```
 custm_data['score'] = custm_data['fraud_score'] * 0.3 + custm_data['outbound_score'] * 0.7
 custm_data['score_z'] = (custm_data['score']-custm_data['score'].mean())/custm_data['score'].std()
 custm_data['score_rescaled'] = custm_data['score_z'].apply(lambda x: st.norm.cdf(x)*100)
@@ -131,8 +136,11 @@ plt.xlabel('n-cluster')
 plt.ylabel('wcss')
 plt.title('elbow method')
 plt.show()
-
-# according to Elbow Method the best number of cluster is 3
+```
+![Elbow Method Plot](https://github.com/KathySunDS/Customer_Classification/blob/main/elbow_mthd.png)
+According to the elbow method, it could be debatable whether the optimal number of cluster can be 2 or 6. However, from the stakeholders I understand there are 3 different strategies premade. In order to fit the cluster into those 3 strategies. I deicided to take 6 as the optimal number of clusters.
+```
+# Using 6 as the optimal number of clusters
 kmeans = KMeans(n_clusters = 6, init = 'k-means++')
 group_result = kmeans.fit_predict(custm_invoice_score.iloc[:,1:])
 custm_invoice_score['cluster_result'] = pd.Series(group_result, index=custm_invoice_score.index)
@@ -166,3 +174,4 @@ plt.legend()
 custm_data = custm_data.merge(custm_invoice_score[['GAN', 'cluster_result']], on = 'GAN', how = 'left')
 custm_data = custm_data.merge(custm_dictionary, on ='GAN', how='left')
 ```
+<img src="https://github.com/KathySunDS/Customer_Classification/blob/main/Cluster_Plot.png" width="500"> 

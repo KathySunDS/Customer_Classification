@@ -18,6 +18,7 @@ from re import sub                        #Regular Expresion
 from sklearn.cluster import KMeans        #Package for building KMeans model
 import scipy.stats as st
 import matplotlib.pyplot as plt           #Visualization
+import collections
 ```
 
 

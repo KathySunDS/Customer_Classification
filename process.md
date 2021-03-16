@@ -139,7 +139,7 @@ plt.ylabel('wcss')
 plt.title('elbow method')
 plt.show()
 ```
-<img src="<img src="https://github.com/KathySunDS/Customer_Classification/blob/main/elbow_mthd" width="500"> 
+<img src="<img src="https://github.com/KathySunDS/Customer_Classification/blob/main/elbow_mthd.png" width="500"> 
 
 According to the elbow method, it could be debatable whether the optimal number of cluster can be 2 or 6. However, from the stakeholders I understand there are 3 different strategies premade. In order to fit the cluster into those 3 strategies. I deicided to take 6 as the optimal number of clusters.
 ```
